@@ -23,6 +23,12 @@ const tests = [
       redux.createStore(_ => _)
     }
   },
+  {
+    file: 'classnames.min.js',
+    test: (cn) => {
+      cn('a', 'b')
+    }
+  },
 ]
 
 function evalInContext(js, context) {
@@ -36,18 +42,19 @@ async function runTest({ file, options, test }, idx) {
 
   console.log(`> starting: ${file}`)
   const script = await readFile(require.resolve(`./fixtures/${file}`))
-  const { code } = await transform(script, {
-    plugins: [
-      [require.resolve('../babel-plugin-transform-umd-to-iife.js'), options],
-    ],
-  })
-
-  eval(code)
 
   try {
+    const { code } = await transform(script, {
+      plugins: [
+        [require.resolve('../babel-plugin-transform-umd-to-iife.js'), options],
+      ],
+    })
+
+    eval(code)
+
     test(global[options.globalName])
   } catch (e) {
-    console.log(`> failed: ${file}\n\n${code.slice(0, 1000)}`)
+    console.log(`> failed: ${file}\n\n${script.slice(0, 1500)}...`)
   } finally {
     delete global[options.globalName]
   }
