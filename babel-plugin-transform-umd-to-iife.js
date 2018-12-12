@@ -4,7 +4,6 @@ const { codeFrameColumns } = require('@babel/code-frame')
 // it will most likely exist inside a ternary or an if/elseif/else tree
 
 // @see https://github.com/amdjs/amdjs-api/wiki/AMD for specs
-
 // the call signiture for a define is
 // define(id?, dependencies?, factory);
 
@@ -17,8 +16,7 @@ function viewNode(state, node, msg) {
   console.log(`\n${msg}\n\n${result}\n`)
 }
 
-module.exports = function transformBundleImports(o) {
-  const { types: t } = o
+module.exports = function transformBundleImports({ types: t }) {
   return {
     visitor: {
       CallExpression(defineCall, state) {
@@ -29,8 +27,7 @@ module.exports = function transformBundleImports(o) {
           const callerBody = caller.get('body')
           const defineAgs = defineCall.get('arguments')
           const factoryArg = defineAgs[defineAgs.length - 1]
-          const dependencyArg = defineAgs.find(t.isArrayExpression)
-
+          const dependencyArg = defineAgs.find(t.isArrayExpression) || []
           const globalRef = caller.node.params[0]
             ? caller.node.params[0].name
             : 'window'
@@ -57,6 +54,7 @@ module.exports = function transformBundleImports(o) {
             )
           })
 
+          // if there is no 'exports'
           umdLogic.replaceWith(t.AssignmentExpression(
             "=",
             t.MemberExpression(
@@ -74,33 +72,9 @@ module.exports = function transformBundleImports(o) {
           //   transform it to a MemberExpression (globalRef[dependencyIdentifier.nam])
 
           // if exports
-          //   factoryArg(globalRef.globalName = {})
+          //   factoryArg(globalRef.globalName = {}, ...rest)
           // else
-          //   window.globalName = factoryArg()
-
-
-
-          // console.log(defineCall.node)
-
-          // viewNode(state, prev, `umd logic`)
-
-          // path.replaceWithMultiple([
-          //   t.expressionStatement(t.stringLiteral("Is this the real life?")),
-          //   t.expressionStatement(t.stringLiteral("Is this just fantasy?")),
-          //   t.expressionStatement(t.stringLiteral("(Enjoy singing the rest of the song in your head)")),
-          // ]);
-
-          // console.log(instantiator)
-          //
-          // // The dependencies argument is optional. If omitted, it should default to ["require", "exports", "module"].
-          //
-          // if (defineAgs.length = 1) {
-          //
-          // }
-
-          // if the
-
-          // console.log(path.get('arguments').length)
+          //   window.globalName = factoryArg(...dependecie refs)
         }
       },
     }
