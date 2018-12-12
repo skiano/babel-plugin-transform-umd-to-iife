@@ -42,8 +42,6 @@ module.exports = function transformBundleImports({ types: t }) {
             umdLogic = p
           })
 
-          viewNode(state, dependencyArg, 'dependencyArg')
-
           const newFactoryArgs = dependencyArg.node.elements.map(d => {
             console.log(d)
             return t.MemberExpression(
@@ -55,16 +53,31 @@ module.exports = function transformBundleImports({ types: t }) {
           })
 
           // if there is no 'exports'
-          umdLogic.replaceWith(t.AssignmentExpression(
-            "=",
-            t.MemberExpression(
-              t.Identifier(globalRef),
-              t.Identifier(state.opts.globalName),
-            ),
-            t.CallExpression(
-              factoryArg.node,
-              newFactoryArgs,
-            )
+          // umdLogic.replaceWith(t.AssignmentExpression(
+          //   "=",
+          //   t.MemberExpression(
+          //     t.Identifier(globalRef),
+          //     t.Identifier(state.opts.globalName),
+          //   ),
+          //   t.CallExpression(
+          //     factoryArg.node,
+          //     newFactoryArgs,
+          //   )
+          // ))
+
+          // otherwise
+          umdLogic.replaceWith(t.CallExpression(
+            factoryArg.node,
+            [
+              t.AssignmentExpression(
+                "=",
+                t.MemberExpression(
+                  t.Identifier(globalRef),
+                  t.Identifier(state.opts.globalName),
+                ),
+                t.ObjectExpression([])
+              )
+            ]
           ))
 
           // for each dependency
