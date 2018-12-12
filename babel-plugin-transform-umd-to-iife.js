@@ -1,61 +1,81 @@
-const replaceUMDLogicWithGlobal = {
-  MemberExpression(path, state) {
-    // if (path.node.object.name === state.globalRoot) {
-    //   console.log('---')
-    //   console.log(path.getStatementParent().node)
-    //   console.log('---')
-    // }
-    if (path.node.object.name === state.globalRoot && path.node.property.name !== state.newName) {
-      const { t } = state
+const { codeFrameColumns } = require('@babel/code-frame')
 
-      // replace global name with new name
-      path.get('property').replaceWith(t.Identifier(state.newName))
-      path.scope.rename(`${state.globalRoot}.${state.newName}`, 'global.b')
+// there will be a define that references the global scope
+// it will most likely exist inside a ternary or an if/elseif/else tree
 
-      // find the logic statement for umd
-      const statement = path.getStatementParent()
-      const assignment = path.parentPath
+// @see https://github.com/amdjs/amdjs-api/wiki/AMD for specs
 
-      // then replace it with just the global assignment part
-      if (t.isCallExpression(assignment.parentPath.node)) {
-        statement.replaceWith(assignment.parentPath)
-      } else if (t.isAssignmentExpression(assignment)) {
-        statement.replaceWith(assignment)
-      }
-    }
-  }
+// the call signiture for a define is
+// define(id?, dependencies?, factory);
+
+/**
+ * debugging helper
+ */
+function viewNode(state, node, msg) {
+  if (node.node) node = node.node // also handle paths
+  const result = codeFrameColumns(state.file.code, node.loc);
+  console.log(`\n${msg}\n\n${result}\n`)
 }
 
-module.exports = function transformBundleImports({ types: t }) {
+module.exports = function transformBundleImports(o) {
+  const { types: t } = o
   return {
     visitor: {
-      UnaryExpression(path, state) {
-        if (path.node.operator === 'typeof') {
-          const arg = path.get('argument')
+      CallExpression(defineCall, state) {
+        const callee = defineCall.get('callee')
 
-          // if this looks like it is checking for define
-          if (
-            // typeof define === 'function'
-            (t.isIdentifier(arg.node, { name: 'define' })) ||
-            // "function" == typeof define
-            (t.isMemberExpression(arg) && arg.get('object').node.name === 'define')
-          ) {
-            // find the enclosing function
-            const func = path.getFunctionParent()
+        if (t.isIdentifier(callee.node, { name: 'define' })) {
+          const caller = defineCall.getFunctionParent()
+          const callerBody = caller.get('body')
+          const defineAgs = defineCall.get('arguments')
+          const factoryArg = defineAgs[defineAgs.length - 1]
+          const dependencyArg = defineAgs.find(t.isArrayExpression)
 
-            // the global object should be the first arg passed
-            // otherwise it might just be window
-            const globalRoot = func.get('params')[0]
-              ? func.get('params')[0].node.name
-              : 'window'
+          const globalRef = caller.node.params[0]
+            ? caller.node.params[0].name
+            : 'window'
 
-            // look inside the function for the global assignment
-            func.traverse(replaceUMDLogicWithGlobal, {
-              newName: state.opts.globalName,
-              globalRoot,
-              t,
-            })
-          }
+          // walk out until you hit the calling functions body
+          // the last thing you walked from should be the ternary or logic block
+          // that needs to be replaces
+          let i = 0
+          let umdLogic
+          defineCall.findParent((p) => {
+            if (p === callerBody) return true
+            umdLogic = p
+          })
+
+          console.log('dependencies')
+          console.log(dependencyArg.node)
+
+          // if exports
+          //   factoryArg(globalRef.globalName = {})
+          // else
+          //   window.globalName = factoryArg()
+
+
+
+          // console.log(defineCall.node)
+
+          // viewNode(state, prev, `umd logic`)
+
+          // path.replaceWithMultiple([
+          //   t.expressionStatement(t.stringLiteral("Is this the real life?")),
+          //   t.expressionStatement(t.stringLiteral("Is this just fantasy?")),
+          //   t.expressionStatement(t.stringLiteral("(Enjoy singing the rest of the song in your head)")),
+          // ]);
+
+          // console.log(instantiator)
+          //
+          // // The dependencies argument is optional. If omitted, it should default to ["require", "exports", "module"].
+          //
+          // if (defineAgs.length = 1) {
+          //
+          // }
+
+          // if the
+
+          // console.log(path.get('arguments').length)
         }
       },
     }
