@@ -29,12 +29,12 @@ function evalInContext(js, context) {
   return function() { return eval(js); }.call(context);
 }
 
-async function runTest({ file, options, test }) {
+async function runTest({ file, options, test }, idx) {
   options = Object.assign({
-    globalName: 'TestName',
+    globalName: `TestName${idx}`,
   }, options)
 
-  console.log(`> running: ${file}`)
+  console.log(`> starting: ${file}`)
   const script = await readFile(require.resolve(`./fixtures/${file}`))
   const { code } = await transform(script, {
     plugins: [
@@ -56,9 +56,7 @@ async function runTest({ file, options, test }) {
 }
 
 async function main() {
-  for (let i = 0; i < tests.length; i += 1) {
-    await runTest(tests[i])
-  }
+	await Promise.all(tests.map(runTest))
 }
 
 main().catch(e => {

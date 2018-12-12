@@ -23,7 +23,6 @@ module.exports = function transformBundleImports({ types: t }) {
 
         // handle uglified expression
         if (t.isUnaryExpression(e) && e.node.operator === '!') {
-          console.log('uglified umd')
           instantiator = e.get('argument').get('callee')
         } else {
           instantiator = e.get('callee')
