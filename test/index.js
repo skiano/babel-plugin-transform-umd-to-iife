@@ -1,6 +1,7 @@
 const fs = require('fs')
 const util = require('util')
 const babel = require('@babel/core')
+const assert = require('assert')
 const readFile = util.promisify(fs.readFile)
 const transform = util.promisify(babel.transform)
 
@@ -8,25 +9,25 @@ const tests = [
   {
     file: 'react.js',
     test: (react) => {
-      react.createElement('div', 'hello world')
+      assert(react.createElement, 'loads react')
     }
   },
   {
     file: 'react.min.js',
     test: (react) => {
-      react.createElement('div', 'hello world')
+      assert(react.createElement, 'loads react')
     }
   },
   {
     file: 'redux.min.js',
     test: (redux) => {
-      redux.createStore(_ => _)
+      assert(redux.createStore, 'loads redux')
     }
   },
   {
     file: 'classnames.min.js',
     test: (cn) => {
-      cn('a', 'b')
+      assert(cn('a', 'b'), 'loads classnames')
     }
   },
 ]
