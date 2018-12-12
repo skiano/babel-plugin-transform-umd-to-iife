@@ -60,7 +60,7 @@ async function runTest({ file, options, test }, idx) {
 
     test(global[options.globalName] || global.window[options.globalName])
   } catch (e) {
-    console.log(`> failed: ${file}\n\n${e.stack}\n\n${code.slice(0, 1500)}...`)
+    console.log(`> failed: ${file}\n\n${e.stack}\n\n${(code || '').slice(0, 1500)}...`)
   } finally {
     delete global[options.globalName]
   }

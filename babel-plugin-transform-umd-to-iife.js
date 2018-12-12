@@ -1,19 +1,16 @@
-// TODO: look for typeof define.amd&&define.amd (recursive search? or typeof)
-// then back up to top of logic
-// then find the global expression
-// then replace names in global expression
-// then replace logic with new global expression
-
-const nestedVisitor = {
+const replaceUMDLogicWithGlobal = {
   MemberExpression(path, state) {
     if (path.node.object.name === state.globalRoot && path.node.property.name !== state.newName) {
       const { t } = state
+
+      // replace global name with new name
       path.get('property').replaceWith(t.Identifier(state.newName))
 
+      // find the logic statement for umd
       const statement = path.getStatementParent()
-
       const assignment = path.parentPath
 
+      // then replace it with just the global assignment part
       if (t.isCallExpression(assignment.parentPath.node)) {
         statement.replaceWith(assignment.parentPath)
       } else {
@@ -30,17 +27,24 @@ module.exports = function transformBundleImports({ types: t }) {
         if (path.node.operator === 'typeof') {
           const arg = path.get('argument')
 
+          // if this looks like it is checking for define
           if (
+            // typeof define === 'function'
             (t.isIdentifier(arg.node, { name: 'define' })) ||
+            // "function" == typeof define
             (t.isMemberExpression(arg) && arg.get('object').node.name === 'define')
           ) {
+            // find the enclosing function
             const func = path.getFunctionParent()
 
+            // the global object should be the first arg passed
+            // otherwise it might just be window
             const globalRoot = func.get('params')[0]
               ? func.get('params')[0].node.name
               : 'window'
 
-            func.traverse(nestedVisitor, {
+            // look inside the function for the global assignment
+            func.traverse(replaceUMDLogicWithGlobal, {
               newName: state.opts.globalName,
               globalRoot,
               t,
@@ -48,57 +52,6 @@ module.exports = function transformBundleImports({ types: t }) {
           }
         }
       },
-
-      Program(path, state) {
-        // console.log(
-        //     path
-        //       .get('body')[0]
-        //       // .get('expression')
-        //       .node
-        // )
-        // console.log(
-        //   path
-        //     .get('body')[0]
-        //     .get('expression')
-        //     .get('left')
-        //     .node
-        // )
-        // const e = path
-        //   .get('body')[0]
-        //   .get('expression')
-        //
-        // let instantiator
-        //
-        // // handle uglified expression
-        // if (t.isUnaryExpression(e) && e.node.operator === '!') {
-        //   instantiator = e.get('argument').get('callee')
-        // } else {
-        //   instantiator = e.get('callee')
-        // }
-        //
-        // const globalRef = instantiator.get('params')[0]
-        //
-        // // find where all the logic is
-        // const umdLogicExpression = (
-        //   instantiator
-        //     .get('body')
-        //     .get('body')[0]
-        // )
-        //
-        // // then find the branch for global variable
-        // const globalExpression = (
-        //   umdLogicExpression
-        //     .get('expression')
-        //     .get('alternate')
-        //     .get('alternate')
-        // )
-        //
-        // // replace all the logic with the global expression
-        // umdLogicExpression.replaceWith(globalExpression)
-        //
-        // // replace the global names with custom var
-        // globalExpression.traverse(nestedVisitor, { globalRef, t, newName: state.opts.globalName })
-      }
     }
   }
 }
