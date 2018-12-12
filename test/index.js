@@ -30,6 +30,12 @@ const tests = [
       assert(cn('a', 'b'), 'loads classnames')
     }
   },
+  {
+    file: 'predication.js',
+    test: (mod) => {
+      assert(mod.predication, 'loads predication')
+    }
+  },
 ]
 
 function evalInContext(js, context) {
@@ -60,13 +66,12 @@ async function runTest({ file, options, test }, idx) {
     eval(code)
 
     test(global[options.globalName] || global.window[options.globalName])
+    console.log(`> passed: ${file}`)
   } catch (e) {
-    console.log(`> failed: ${file}\n\n${e.stack}\n\n${(code || '').slice(0, 1500)}...`)
+    console.log(`> failed: ${file}\n\n${e.stack}\n\n${(code || '').slice(0, 1000)}...`)
   } finally {
     delete global[options.globalName]
   }
-
-  console.log(`> passed: ${file}`)
 }
 
 async function main() {
