@@ -1,0 +1,25 @@
+{
+  "name": "babel-plugin-transform-umd-to-iife",
+  "version": "1.0.0",
+  "description": "Transform umd bundle into iife",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skiano/babel-plugin-transform-umd-to-iife.git"
+  },
+  "keywords": [
+    "babel"
+  ],
+  "author": "Greg Skiano",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/skiano/babel-plugin-transform-umd-to-iife/issues"
+  },
+  "homepage": "https://github.com/skiano/babel-plugin-transform-umd-to-iife#readme",
+  "devDependencies": {
+    "@babel/core": "^7.2.0"
+  }
+}
