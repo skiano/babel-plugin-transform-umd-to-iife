@@ -25,6 +25,9 @@ module.exports = function transformBundleImports(o) {
         const callee = defineCall.get('callee')
 
         if (t.isIdentifier(callee.node, { name: 'define' })) {
+
+          console.log(defineCall.node)
+
           const caller = defineCall.getFunctionParent()
           const callerBody = caller.get('body')
           const defineAgs = defineCall.get('arguments')
@@ -45,8 +48,25 @@ module.exports = function transformBundleImports(o) {
             umdLogic = p
           })
 
-          console.log('dependencies')
-          console.log(dependencyArg.node)
+          viewNode(state, factoryArg)
+
+          umdLogic.replaceWith(t.AssignmentExpression(
+            "=",
+            t.MemberExpression(
+              t.Identifier(globalRef),
+              t.Identifier(state.opts.globalName),
+            ),
+            t.CallExpression(
+              factoryArg.node,
+              [
+                t.StringLiteral('assd')
+              ],
+            )
+          ))
+
+          // for each dependency
+          //   if it is exports, replact it with factoryArg.name(globalRef.globalName = {})
+          //   transform it to a MemberExpression (globalRef[dependencyIdentifier.nam])
 
           // if exports
           //   factoryArg(globalRef.globalName = {})
