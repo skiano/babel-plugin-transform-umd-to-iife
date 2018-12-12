@@ -27,11 +27,14 @@ async function runTest(file, idx) {
     global.window = {}
     eval(code)
 
-    assert(global[globalName] || global.window[globalName], `${globalName} is defined by ${file}`)
+    assert(global[globalName] || global.window[globalName], `> '${globalName}' should be defined by ${file}`)
 
     console.log(`> passed: ${file}`)
   } catch (e) {
-    console.log(`> failed: ${file}\n\n${e.stack}\n\n${'='.repeat(75)}\n\n${(code || '').slice(0, 1000)}...`)
+    console.log(`> failed: ${file}\n\n${e.message}\n`)
+    console.log('='.repeat(75), '\n')
+    console.log(`${(code || '').slice(0, 1000)}...\n`)
+    console.log('='.repeat(75), '\n')
   } finally {
     delete global[globalName]
   }
