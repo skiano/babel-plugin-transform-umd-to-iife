@@ -1,54 +1,14 @@
 const fs = require('fs')
 const util = require('util')
+const path = require('path')
 const babel = require('@babel/core')
 const assert = require('assert')
+const readDir = util.promisify(fs.readdir)
 const readFile = util.promisify(fs.readFile)
 const transform = util.promisify(babel.transform)
 
-const tests = [
-  {
-    file: 'react.js',
-    test: (react) => {
-      assert(react.createElement, 'loads react')
-    }
-  },
-  {
-    file: 'react.min.js',
-    test: (react) => {
-      assert(react.createElement, 'loads react')
-    }
-  },
-  {
-    file: 'redux.min.js',
-    test: (redux) => {
-      assert(redux.createStore, 'loads redux')
-    }
-  },
-  {
-    file: 'classnames.min.js',
-    test: (cn) => {
-      assert(cn('a', 'b'), 'loads classnames')
-    }
-  },
-  {
-    file: 'predication.js',
-    test: (mod) => {
-      assert(mod.predication, 'loads predication')
-    }
-  },
-]
-
-function evalInContext(js, context) {
-  return function() { return eval(js); }.call(context);
-}
-
-async function runTest({ file, options, test }, idx) {
-  console.log(`> starting: ${file}`)
-
-  options = Object.assign({
-    globalName: `TestName${idx}`,
-  }, options)
-
+async function runTest(file, idx) {
+  const globalName = `TestName${idx}`
   const script = await readFile(require.resolve(`./fixtures/${file}`))
 
   let code
@@ -56,7 +16,9 @@ async function runTest({ file, options, test }, idx) {
   try {
     const r = await transform(script, {
       plugins: [
-        [require.resolve('../babel-plugin-transform-umd-to-iife.js'), options],
+        [require.resolve('../babel-plugin-transform-umd-to-iife.js'), {
+          globalName: globalName,
+        }],
       ],
     })
 
@@ -65,16 +27,22 @@ async function runTest({ file, options, test }, idx) {
     global.window = {}
     eval(code)
 
-    test(global[options.globalName] || global.window[options.globalName])
+    assert(global[globalName] || global.window[globalName], `${globalName} is defined by ${file}`)
+
     console.log(`> passed: ${file}`)
   } catch (e) {
-    console.log(`> failed: ${file}\n\n${e.stack}\n\n${(code || '').slice(0, 1000)}...`)
+    console.log(`> failed: ${file}\n\n${e.stack}\n\n${'='.repeat(75)}\n\n${(code || '').slice(0, 1000)}...`)
   } finally {
-    delete global[options.globalName]
+    delete global[globalName]
   }
 }
 
 async function main() {
+  const substring = process.argv[2] || '.js'
+
+  const files = await readDir(path.resolve(__dirname, 'fixtures'))
+  const tests = files.filter(v => v.includes(substring))
+
 	await Promise.all(tests.map(runTest))
 }
 
