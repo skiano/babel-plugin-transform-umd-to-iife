@@ -46,7 +46,7 @@ async function main() {
   const files = await readDir(path.resolve(__dirname, 'fixtures'))
   const tests = files.filter(v => v.includes(substring))
 
-	await Promise.all(tests.map(runTest))
+  await Promise.all(tests.map(runTest))
 }
 
 main().catch(e => {
