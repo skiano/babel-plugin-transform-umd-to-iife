@@ -3012,8 +3012,6 @@ if (enableHooks) {
   React.useState = useState;
 }
 
-
-
 var React$2 = Object.freeze({
 	default: React
 });

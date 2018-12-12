@@ -36,25 +36,31 @@ function evalInContext(js, context) {
 }
 
 async function runTest({ file, options, test }, idx) {
+  console.log(`> starting: ${file}`)
+
   options = Object.assign({
     globalName: `TestName${idx}`,
   }, options)
 
-  console.log(`> starting: ${file}`)
   const script = await readFile(require.resolve(`./fixtures/${file}`))
 
+  let code
+
   try {
-    const { code } = await transform(script, {
+    const r = await transform(script, {
       plugins: [
         [require.resolve('../babel-plugin-transform-umd-to-iife.js'), options],
       ],
     })
 
+    code = r.code
+
+    global.window = {}
     eval(code)
 
-    test(global[options.globalName])
+    test(global[options.globalName] || global.window[options.globalName])
   } catch (e) {
-    console.log(`> failed: ${file}\n\n${script.slice(0, 1500)}...`)
+    console.log(`> failed: ${file}\n\n${e.stack}\n\n${code.slice(0, 1500)}...`)
   } finally {
     delete global[options.globalName]
   }
