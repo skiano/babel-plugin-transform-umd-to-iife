@@ -1,10 +1,16 @@
 const replaceUMDLogicWithGlobal = {
   MemberExpression(path, state) {
+    // if (path.node.object.name === state.globalRoot) {
+    //   console.log('---')
+    //   console.log(path.getStatementParent().node)
+    //   console.log('---')
+    // }
     if (path.node.object.name === state.globalRoot && path.node.property.name !== state.newName) {
       const { t } = state
 
       // replace global name with new name
       path.get('property').replaceWith(t.Identifier(state.newName))
+      path.scope.rename(`${state.globalRoot}.${state.newName}`, 'global.b')
 
       // find the logic statement for umd
       const statement = path.getStatementParent()
@@ -13,7 +19,7 @@ const replaceUMDLogicWithGlobal = {
       // then replace it with just the global assignment part
       if (t.isCallExpression(assignment.parentPath.node)) {
         statement.replaceWith(assignment.parentPath)
-      } else {
+      } else if (t.isAssignmentExpression(assignment)) {
         statement.replaceWith(assignment)
       }
     }
