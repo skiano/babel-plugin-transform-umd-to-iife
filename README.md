@@ -19,3 +19,6 @@ npm install babel-plugin-transform-umd-to-iife --save-dev
   ],
 }
 ```
+### caveats
+
+I tried to make this so it would work for common formats of umd, but I would not be surprised if some pacakges have issues. If you find examples of pacakges that do not work, let me know :)
