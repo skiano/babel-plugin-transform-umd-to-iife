@@ -1,5 +1,3 @@
-const { codeFrameColumns } = require('@babel/code-frame')
-
 // there will be a define that references the global scope
 // it will most likely exist inside a ternary or an if/elseif/else tree
 
@@ -10,11 +8,12 @@ const { codeFrameColumns } = require('@babel/code-frame')
 /**
  * debugging helper
  */
-function viewNode(state, node, msg) {
-  if (node.node) node = node.node // also handle paths
-  const result = codeFrameColumns(state.file.code, node.loc);
-  console.log(`\n${msg}\n\n${result}\n`)
-}
+// const { codeFrameColumns } = require('@babel/code-frame')
+// function viewNode(state, node, msg) {
+//   if (node.node) node = node.node // also handle paths
+//   const result = codeFrameColumns(state.file.code, node.loc);
+//   console.log(`\n${msg}\n\n${result}\n`)
+// }
 
 module.exports = function transformBundleImports({ types: t }) {
   return {
