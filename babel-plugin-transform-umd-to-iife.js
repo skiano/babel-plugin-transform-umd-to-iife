@@ -53,10 +53,7 @@ module.exports = function transformBundleImports({ types: t }) {
 
           const exportsIdx = args.findIndex(a => t.isStringLiteral(a, { value: 'exports' }))
           const exportsArg = args[exportsIdx]
-
-          if (exportsArg) {
-            args = args.slice(0, exportsIdx).concat(args.slice(exportsIdx + 1))
-          }
+          if (exportsArg) args = args.slice(0, exportsIdx).concat(args.slice(exportsIdx + 1))
 
           const globalArgs = args.map(d => {
             return t.MemberExpression(
