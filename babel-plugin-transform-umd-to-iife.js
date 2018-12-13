@@ -42,52 +42,57 @@ module.exports = function transformBundleImports({ types: t }) {
             umdLogic = p
           })
 
-          const newFactoryArgs = dependencyArg.node.elements.map(d => {
-            console.log(d)
+          let args = dependencyArg.node.elements
+          const exportsIdx = args.findIndex(a => t.isStringLiteral(a, { value: 'exports' }))
+          const exportsArg = args[exportsIdx]
+          const hasExports = exportsIdx > -1
+
+          if (exportsArg) {
+            args = args.slice(0, exportsIdx).concat(args.slice(exportsIdx + 1))
+          }
+
+          const globalArgs = args.map(d => {
             return t.MemberExpression(
               t.Identifier(globalRef),
-              t.stringLiteral(d.value),
+              t.StringLiteral(d.value),
               true,
-              false,
             )
           })
-
-          // if there is no 'exports'
-          // umdLogic.replaceWith(t.AssignmentExpression(
-          //   "=",
-          //   t.MemberExpression(
-          //     t.Identifier(globalRef),
-          //     t.Identifier(state.opts.globalName),
-          //   ),
-          //   t.CallExpression(
-          //     factoryArg.node,
-          //     newFactoryArgs,
-          //   )
-          // ))
-
-          // otherwise
-          umdLogic.replaceWith(t.CallExpression(
-            factoryArg.node,
-            [
-              t.AssignmentExpression(
-                "=",
-                t.MemberExpression(
-                  t.Identifier(globalRef),
-                  t.Identifier(state.opts.globalName),
-                ),
-                t.ObjectExpression([])
-              )
-            ]
-          ))
-
-          // for each dependency
-          //   if it is exports, replact it with factoryArg.name(globalRef.globalName = {})
-          //   transform it to a MemberExpression (globalRef[dependencyIdentifier.nam])
 
           // if exports
           //   factoryArg(globalRef.globalName = {}, ...rest)
           // else
           //   window.globalName = factoryArg(...dependecie refs)
+
+          if (exportsArg) {
+            umdLogic.replaceWith(t.CallExpression(
+              factoryArg.node,
+              [
+                t.AssignmentExpression(
+                  "=",
+                  t.MemberExpression(
+                    t.Identifier(globalRef),
+                    t.StringLiteral(state.opts.globalName),
+                    true,
+                  ),
+                  t.ObjectExpression([])
+                )
+              ].concat(globalArgs)
+            ))
+          } else {
+            umdLogic.replaceWith(t.AssignmentExpression(
+              "=",
+              t.MemberExpression(
+                t.Identifier(globalRef),
+                t.StringLiteral(state.opts.globalName),
+                true,
+              ),
+              t.CallExpression(
+                factoryArg.node,
+                globalArgs,
+              )
+            ))
+          }
         }
       },
     }
