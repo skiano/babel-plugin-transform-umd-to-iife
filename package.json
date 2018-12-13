@@ -2,7 +2,7 @@
   "name": "babel-plugin-transform-umd-to-iife",
   "version": "1.0.0",
   "description": "Transform umd bundle into iife",
-  "main": "index.js",
+  "main": "babel-plugin-transform-umd-to-iife.js",
   "scripts": {
     "test": "node test",
     "dev": "npm test",
