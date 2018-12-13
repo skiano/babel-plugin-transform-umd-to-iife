@@ -27,7 +27,7 @@ module.exports = function transformBundleImports({ types: t }) {
           const callerBody = caller.get('body')
           const defineAgs = defineCall.get('arguments')
           const factoryArg = defineAgs[defineAgs.length - 1]
-          const dependencyArg = defineAgs.find(t.isArrayExpression) || []
+          const dependencyArg = defineAgs.find(t.isArrayExpression)
           const globalRef = caller.node.params[0]
             ? caller.node.params[0].name
             : 'window'
@@ -42,10 +42,17 @@ module.exports = function transformBundleImports({ types: t }) {
             umdLogic = p
           })
 
-          let args = dependencyArg.node.elements
+          // if exports
+          //   factoryArg(globalRef.globalName = {}, ...rest)
+          // else
+          //   window.globalName = factoryArg(...dependecie refs)
+
+          let args = dependencyArg
+            ? dependencyArg.node.elements
+            : []
+
           const exportsIdx = args.findIndex(a => t.isStringLiteral(a, { value: 'exports' }))
           const exportsArg = args[exportsIdx]
-          const hasExports = exportsIdx > -1
 
           if (exportsArg) {
             args = args.slice(0, exportsIdx).concat(args.slice(exportsIdx + 1))
@@ -58,11 +65,6 @@ module.exports = function transformBundleImports({ types: t }) {
               true,
             )
           })
-
-          // if exports
-          //   factoryArg(globalRef.globalName = {}, ...rest)
-          // else
-          //   window.globalName = factoryArg(...dependecie refs)
 
           if (exportsArg) {
             umdLogic.replaceWith(t.CallExpression(

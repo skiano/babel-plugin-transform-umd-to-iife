@@ -31,12 +31,11 @@ async function runTest(file, idx) {
 
     console.log(`> passed: ${file}`)
   } catch (e) {
-    console.log(`> failed: ${file}\n\n${e.message}\n`)
-
-  } finally {
+    console.log(`> failed: ${file}\n\n${e.stack}\n`)
     console.log('='.repeat(75), '\n')
     console.log(`${(code || '').slice(0, 1000)}...\n`)
     console.log('='.repeat(75), '\n')
+  } finally {
     delete global[globalName]
   }
 }
