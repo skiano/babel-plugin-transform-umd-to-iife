@@ -27,7 +27,7 @@ async function runTest(file, idx) {
     global.window = {}
     eval(code)
 
-    assert(global[globalName] || global.window[globalName], `> '${globalName}' should be defined by ${file}`)
+    assert((global[globalName] || global.window[globalName]).isModule, `> '${globalName}' should be defined by ${file}`)
 
     console.log(`> passed: ${file}`)
   } catch (e) {
