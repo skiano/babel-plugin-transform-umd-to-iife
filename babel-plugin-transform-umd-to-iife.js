@@ -58,6 +58,10 @@ module.exports = function transformBundleImports({ types: t }) {
           const globalArgs = args.map(d => {
             return t.MemberExpression(
               t.Identifier(globalRef),
+              // TODO... map these global names to user specified names
+              // should this throw if it doesnt know what to name it
+              // or at least warn sort of like rollup?
+              // (ie could not find global name for MyLibrary, assuming `react`)
               t.StringLiteral(d.value),
               true,
             )
