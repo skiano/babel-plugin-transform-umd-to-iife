@@ -19,6 +19,7 @@ module.exports = function transformBundleImports({ types: t }) {
   return {
     visitor: {
       CallExpression(defineCall, state) {
+        const dependencies = state.opts.dependencies || {}
         const callee = defineCall.get('callee')
 
         if (t.isIdentifier(callee.node, { name: 'define' })) {
@@ -55,13 +56,16 @@ module.exports = function transformBundleImports({ types: t }) {
           if (exportsArg) args = args.slice(0, exportsIdx).concat(args.slice(exportsIdx + 1))
 
           const globalArgs = args.map(d => {
+            let dependencyName = dependencies[d.value]
+
+            if (!dependencyName) {
+              dependencyName = d.value
+              console.warn(`> no global name defined for '${d.value}'. Assumed ${dependencyName}`)
+            }
+
             return t.MemberExpression(
               t.Identifier(globalRef),
-              // TODO... map these global names to user specified names
-              // should this throw if it doesnt know what to name it
-              // or at least warn sort of like rollup?
-              // (ie could not find global name for MyLibrary, assuming `react`)
-              t.StringLiteral(d.value),
+              t.StringLiteral(dependencyName),
               true,
             )
           })

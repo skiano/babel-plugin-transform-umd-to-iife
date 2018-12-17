@@ -18,6 +18,10 @@ async function runTest(file, idx) {
       plugins: [
         [require.resolve('../babel-plugin-transform-umd-to-iife.js'), {
           globalName: globalName,
+          dependencies: {
+            'library': 'Library',
+            'other-library': 'OtherLibrary',
+          },
         }],
       ],
     })
