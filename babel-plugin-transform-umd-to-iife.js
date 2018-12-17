@@ -15,7 +15,7 @@
 //   console.log(`\n${msg}\n\n${result}\n`)
 // }
 
-module.exports = function transformBundleImports({ types: t }) {
+module.exports = function transformUMDToIIFE({ types: t }) {
   return {
     visitor: {
       CallExpression(defineCall, state) {
