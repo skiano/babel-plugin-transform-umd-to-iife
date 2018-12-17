@@ -18,7 +18,7 @@
 function isGlobalDefine(t, path) {
   return (
     t.isIdentifier(path.node, { name: 'define' }) &&
-    !path.scope.hasBinding('define') // no local binding
+    !path.scope.hasBinding('define')
   )
 }
 
