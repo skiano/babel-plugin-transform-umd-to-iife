@@ -7,6 +7,10 @@
     factory(global.Library, global.OtherLibrary);
   }
 })(this, function () {
+  const define = () => {}
+
+  define()
+
   return {
     isModule: true,
   }
