@@ -15,18 +15,18 @@
 //   console.log(`\n${msg}\n\n${result}\n`)
 // }
 
+function isGlobalDefine(t, path) {
+  return (
+    t.isIdentifier(path.node, { name: 'define' }) &&
+    !path.scope.hasBinding('define') // no local binding
+  )
+}
+
 module.exports = function transformUMDToIIFE({ types: t }) {
   return {
     visitor: {
       CallExpression(defineCall, state) {
-        const callee = defineCall.get('callee')
-
-        if (
-          !t.isIdentifier(callee.node, { name: 'define' }) || // not a define call
-          callee.scope.hasBinding('define') // define call is bound to something explicitly
-        ) {
-          return
-        }
+        if (!isGlobalDefine(t, defineCall.get('callee'))) return
 
         const dependencies = state.opts.dependencies || {}
         const caller = defineCall.getFunctionParent()
