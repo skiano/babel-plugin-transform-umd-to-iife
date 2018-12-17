@@ -19,10 +19,10 @@ module.exports = function transformUMDToIIFE({ types: t }) {
   return {
     visitor: {
       CallExpression(defineCall, state) {
-        const dependencies = state.opts.dependencies || {}
         const callee = defineCall.get('callee')
 
         if (t.isIdentifier(callee.node, { name: 'define' })) {
+          const dependencies = state.opts.dependencies || {}
           const caller = defineCall.getFunctionParent()
           const callerBody = caller.get('body')
           const defineAgs = defineCall.get('arguments')
